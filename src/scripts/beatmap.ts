@@ -1,9 +1,11 @@
-const HIT_CIRCLE = 0;
-const SLIDER = 7;
+const HIT_CIRCLE = 1;
+const SLIDER = 128;
 
 const NOTE_Y = 192;
 
 const DEFAULT_HIT_SOUND = 0;
+
+const COLUMN_COUNT = 4;
 
 const BEATMAP_HEADER = "osu file format v14";
 //Using this temporarily so I dont have to figure it out right now
@@ -27,36 +29,53 @@ class Note {
     time: number;
     type: number;
     hitSound: number;
-    objectParams: String;
-    hitSample: String;
+    objectParams: number;
+    hitSample: String; //never used
 
-    buttonId: number;
     // constructor(time: number, buttonId: number) {
     //   this.time = time;
     //   this.buttonId = buttonId;
     // }
 
-    constructor(column: number, time: number, type: number) {
+    constructor(time: number, column: number, type: number) {
         //Defaults for osu mania
         this.y = NOTE_Y;
         this.hitSound = DEFAULT_HIT_SOUND;
-        //hitSample: "";
+        this.type = type;
 
+        //Formula converting column into x value on screen
+        this.x = column * 512 / COLUMN_COUNT;
         //Time input is in seconds, convert to ms here
-        this.time = time * 1000;
+        this.time = Math.floor(time * 1000);
 
     }
 
     toBytes() {
-      const floatBuffer = new ArrayBuffer(8);
-      const floatView = new Float64Array(floatBuffer);
-      floatView[0] = this.time as number;
-      const intBuffer = new ArrayBuffer(4);
-      const intView = new Int32Array(intBuffer);
-      intView[0] = this.buttonId as number;
+        const xBuffer = new ArrayBuffer(4);
+        const xView = new Int32Array(xBuffer);
+        xView[0] = this.x as number;
+        const yBuffer = new ArrayBuffer(4);
+        const yView = new Int32Array(yBuffer);
+        yView[0] = this.y as number;
+        const timeBuffer = new ArrayBuffer(4);
+        const timeView = new Int32Array(timeBuffer);
+        timeView[0] = this.time as number;
+        const typeBuffer = new ArrayBuffer(4);
+        const typeView = new Int32Array(typeBuffer);
+        typeView[0] = this.x as number;
+        const hitSoundBuffer = new ArrayBuffer(4);
+        const hitSoundView = new Int32Array(hitSoundBuffer);
+        hitSoundView[0] = this.y as number;
+        const objectParamsBuffer = new ArrayBuffer(4);
+        const objectParamsView = new Int32Array(objectParamsBuffer);
+        objectParamsView[0] = this.time as number;
       
-      return [...Array.from(new Uint8Array(floatBuffer)), 
-        ...Array.from(new Uint8Array(intBuffer))];
+      return [...Array.from(new Uint8Array(xBuffer)), 
+        ...Array.from(new Uint8Array(yBuffer)), 
+        ...Array.from(new Uint8Array(timeBuffer)), 
+        ...Array.from(new Uint8Array(typeBuffer)), 
+        ...Array.from(new Uint8Array(hitSoundBuffer)), 
+        ...Array.from(new Uint8Array(objectParamsBuffer))];
     }
 }
 

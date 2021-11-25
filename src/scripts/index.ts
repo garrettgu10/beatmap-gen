@@ -1,4 +1,5 @@
 import '../styles/index.scss';
+import 'beatmap.ts';
 
 const stdev = require('standarddeviation');
 const average = require('average');
@@ -11,63 +12,15 @@ if (process.env.NODE_ENV === 'development') {
 
 const ROLLING_DIFFS_SIZE = 100;
 
-class Note {
-  time: Number;
-  buttonId: Number;
-  constructor(time: Number, buttonId: Number) {
-    this.time = time;
-    this.buttonId = buttonId;
-  }
-
-  toBytes() {
-    const floatBuffer = new ArrayBuffer(8);
-    const floatView = new Float64Array(floatBuffer);
-    floatView[0] = this.time as number;
-    const intBuffer = new ArrayBuffer(4);
-    const intView = new Int32Array(intBuffer);
-    intView[0] = this.buttonId as number;
-    
-    return [...Array.from(new Uint8Array(floatBuffer)), 
-      ...Array.from(new Uint8Array(intBuffer))];
-  }
-}
-
-class BeatMap {
-  notes: Array<Note>;
-  constructor() {
-    this.notes = [];
-  }
-
-  addBeat(time: Number) {
-    this.notes.push(new Note(time, Math.floor(Math.random() * 4)));
-  }
-
-  downloadFile() {
-    const bytes: Array<Number> = [];
-    this.notes.forEach(note => {
-      bytes.push(...note.toBytes());
-    });
-    
-    const arrayBuffer = new ArrayBuffer(bytes.length);
-    const view = new Uint8Array(arrayBuffer);
-    for (let i = 0; i < bytes.length; i++) {
-      view[i] = bytes[i] as number;
-    }
-
-    const blob = new Blob([arrayBuffer], {type: 'application/octet-stream'});
-    const link = document.createElement('a');
-    link.href = URL.createObjectURL(blob);
-    link.download = 'beatmap.map';
-    link.click();
-  }
-}
-
 window.onload = function() {
   const audioFile = document.getElementById('audio-file');
+  const audioFilename = audioFile.nodeValue;
   const visualizer = document.getElementById('visualizer') as HTMLCanvasElement;
   let audioContext = new AudioContext();
   let audioBeginTime = 0;
   const beatMap = new BeatMap();
+  const beatMapData = new BeatMapData(audioFilename);
+  beatMap.setData(beatMapData);
   audioFile.onchange = function() {
     const fileReader = new FileReader();
 
