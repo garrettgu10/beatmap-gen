@@ -1,5 +1,5 @@
 import '../styles/index.scss';
-import 'beatmap.ts';
+import './beatmap.ts';
 
 const stdev = require('standarddeviation');
 const average = require('average');
