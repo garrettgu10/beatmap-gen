@@ -10,7 +10,7 @@ const COLUMN_COUNT = 4;
 const BEATMAP_HEADER = "osu file format v14";
 //Using this temporarily so I dont have to figure it out right now
 const TEMP_DATA = "Mode: 3\n\n[Editor]\n\n[Metadata]\nTitle:Song\nTitleUnicode:Song\nArtist:\nArtistUnicode:\nCreator:Andrew\nVersion:Andrew's Easy\nSource:\nTags:\nBeatmapID:1\nBeatmapSetID:1\n\n[Difficulty]\nHPDrainRate:6.5\nCircleSize:4\nOverallDifficulty:6.5\nApproachRate:5\nSliderMultiplier:1.4\nSliderTickRate:1\n\n[Events]\n\n[TimingPoints]\n//second number is bpm - 1 / value * 1000 * 60 = bpm, 333.33 = 180 bpm\n0,333.33,4,0,0,40,1,0";
-
+const FILE_SIZE = 1;
 
 // source: http://stackoverflow.com/a/11058858
 function str2ab(str: string) {
@@ -79,7 +79,7 @@ class Note {
     }
 }
 
-class BeatMapData {
+export class BeatMapData {
     AudioFilename: string;
 
     constructor(AudioFilename: string) {
@@ -93,7 +93,7 @@ class BeatMapData {
     }
 }
 
-class BeatMap {
+export class BeatMap {
     data: BeatMapData;
     notes: Array<Note>;
     constructor() {
@@ -112,9 +112,13 @@ class BeatMap {
       const noteBytes: Array<number> = [];
       this.notes.forEach(note => {
         noteBytes.push(...note.toBytes());
-      });
-      
-      const arrayBuffer = new ArrayBuffer(noteBytes.length);
+        });
+        
+        const dataBytes = this.data.toBytes();
+        console.log("Creating File");
+        console.log(noteBytes.length);
+        console.log(dataBytes.length);
+      const arrayBuffer = new ArrayBuffer(noteBytes.length + dataBytes.length);
       const view = new Uint8Array(arrayBuffer);
       for (let i = 0; i < noteBytes.length; i++) {
         view[i] = noteBytes[i] as number;
@@ -123,7 +127,7 @@ class BeatMap {
       const blob = new Blob([arrayBuffer], {type: 'application/octet-stream'});
       const link = document.createElement('a');
       link.href = URL.createObjectURL(blob);
-      link.download = 'beatmap.map';
+      link.download = 'beatmap.osu';
       link.click();
     }
   }
