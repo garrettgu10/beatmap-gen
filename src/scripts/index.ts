@@ -2,6 +2,7 @@ import '../styles/index.scss';
 import BeatMap from './beatmap';
 import RhythmGame, {APPROACH_SECONDS} from './rhythmgame';
 import Visualizer from './visualizer';
+import Wavifier from './wavifier';
 
 const stdev = require('standarddeviation');
 const average = require('average');
@@ -98,6 +99,7 @@ window.onload = function() {
 
         new Visualizer(<HTMLCanvasElement>document.getElementById("visualizer"), 
           visualizerAnalyzer);
+        new Wavifier(<HTMLCanvasElement>document.getElementById("visualizer"));
 
         source.start();
         audioBeginTime = audioContext.currentTime;
