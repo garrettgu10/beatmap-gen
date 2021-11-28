@@ -1,5 +1,6 @@
 import '../styles/index.scss';
 import BeatMap from './beatmap';
+import RhythmGame, {APPROACH_SECONDS} from './rhythmgame';
 
 const stdev = require('standarddeviation');
 const average = require('average');
@@ -9,9 +10,6 @@ const Uint8Array = window.Uint8Array;
 if (process.env.NODE_ENV === 'development') {
   require('../index.html');
 }
-
-const ROLLING_DIFFS_SIZE = 100;
-const APPROACH_SECONDS = 2;
 
 window.onload = function() {
   const audioFile = document.getElementById('audio-file');
@@ -47,18 +45,18 @@ window.onload = function() {
         let diffs: Array<Number> = [];
         let currentlyOnBeat = false;
 
-        setInterval(() => {
+        let eachFrame = () => {
           analyzer.getByteFrequencyData(dataArray);
-          const visualizerCtx = visualizer.getContext('2d');
-          visualizerCtx.clearRect(0, 0, visualizer.width, visualizer.height);
+          // const visualizerCtx = visualizer.getContext('2d');
+          // visualizerCtx.clearRect(0, 0, visualizer.width, visualizer.height);
           
-          visualizerCtx.fillStyle = 'rgb(0, 0, 0)';
+          // visualizerCtx.fillStyle = 'rgb(0, 0, 0)';
 
-          const barWidth = visualizer.width / frequencyBins;
+          // const barWidth = visualizer.width / frequencyBins;
           
-          for(let i = 0; i < frequencyBins; i++) {
-            visualizerCtx.fillRect(i * barWidth, 0, barWidth, visualizer.height - dataArray[i] / 256 * visualizer.height);
-          }
+          // for(let i = 0; i < frequencyBins; i++) {
+          //   visualizerCtx.fillRect(i * barWidth, 0, barWidth, visualizer.height - dataArray[i] / 256 * visualizer.height);
+          // }
 
           let diff = 0;
 
@@ -66,33 +64,42 @@ window.onload = function() {
             diff += Math.abs(dataArray[i] - previousDataArray[i]);
           }
           
-          visualizerCtx.fillStyle = 'rgb(255, 0, 0)';
-          visualizerCtx.fillRect(0, visualizer.height - 10, diff / 10, 10);
+          // visualizerCtx.fillStyle = 'rgb(255, 0, 0)';
+          // visualizerCtx.fillRect(0, visualizer.height - 10, diff / 10, 10);
 
           diffs.push(diff);
           const avg = average(diffs);
           const std = stdev.calculateStandardDeviation(diffs);
+
+          const sensitivity = Number.parseFloat(
+            (<HTMLInputElement>document.getElementById("sensitivity")).value);
           
-          if(diff > avg + std) {
+          if(diff > avg + std * sensitivity) {
             if(!currentlyOnBeat) {
               const timestamp = audioContext.currentTime - audioBeginTime;
-              console.log(timestamp);
               beatMap.addBeat(timestamp);
-              visualizerCtx.fillRect(0, 0, 10, 10);
+              // visualizerCtx.fillRect(0, 0, 10, 10);
             }
             currentlyOnBeat = true;
           }else{
             currentlyOnBeat = false;
           }
 
-          if(diffs.length > ROLLING_DIFFS_SIZE) {
+          let rollingDiffsSize = Number.parseInt(
+            (<HTMLInputElement>document.getElementById("sustain")).value);
+
+          while(diffs.length > rollingDiffsSize) {
             diffs.shift();
           }
 
           previousDataArray.set(dataArray);
-        }, 30);
+        }
 
-        source.connect(filter)
+        setInterval(eachFrame, 30);
+
+        source.connect(filter);
+
+        source
           .connect(new DelayNode(audioContext, {
             "delayTime": APPROACH_SECONDS
           }))
@@ -100,6 +107,9 @@ window.onload = function() {
 
         source.start();
         audioBeginTime = audioContext.currentTime;
+
+        new RhythmGame(<HTMLCanvasElement>document.getElementById('game'), 
+          beatMap, audioBeginTime, audioContext);
 
         source.addEventListener('ended', function() {
           beatMap.downloadFile();
