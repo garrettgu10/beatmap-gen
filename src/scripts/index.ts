@@ -1,6 +1,7 @@
 import '../styles/index.scss';
 import BeatMap from './beatmap';
 import RhythmGame, {APPROACH_SECONDS} from './rhythmgame';
+import Visualizer from './visualizer';
 
 const stdev = require('standarddeviation');
 const average = require('average');
@@ -16,9 +17,9 @@ window.onload = function() {
   const visualizer = document.getElementById('visualizer') as HTMLCanvasElement;
   let audioContext = new AudioContext();
   let audioBeginTime = 0;
-  const beatMap = new BeatMap();
   audioFile.onchange = function() {
     const fileReader = new FileReader();
+    const beatMap = new BeatMap();
 
     fileReader.readAsArrayBuffer((<HTMLInputElement>this).files[0]);
 
@@ -47,25 +48,12 @@ window.onload = function() {
 
         let eachFrame = () => {
           analyzer.getByteFrequencyData(dataArray);
-          // const visualizerCtx = visualizer.getContext('2d');
-          // visualizerCtx.clearRect(0, 0, visualizer.width, visualizer.height);
-          
-          // visualizerCtx.fillStyle = 'rgb(0, 0, 0)';
-
-          // const barWidth = visualizer.width / frequencyBins;
-          
-          // for(let i = 0; i < frequencyBins; i++) {
-          //   visualizerCtx.fillRect(i * barWidth, 0, barWidth, visualizer.height - dataArray[i] / 256 * visualizer.height);
-          // }
 
           let diff = 0;
 
           for(let i = 0; i < frequencyBins; i++) {
             diff += Math.abs(dataArray[i] - previousDataArray[i]);
           }
-          
-          // visualizerCtx.fillStyle = 'rgb(255, 0, 0)';
-          // visualizerCtx.fillRect(0, visualizer.height - 10, diff / 10, 10);
 
           diffs.push(diff);
           const avg = average(diffs);
@@ -78,7 +66,6 @@ window.onload = function() {
             if(!currentlyOnBeat) {
               const timestamp = audioContext.currentTime - audioBeginTime;
               beatMap.addBeat(timestamp);
-              // visualizerCtx.fillRect(0, 0, 10, 10);
             }
             currentlyOnBeat = true;
           }else{
@@ -99,11 +86,18 @@ window.onload = function() {
 
         source.connect(filter);
 
+        const visualizerAnalyzer = audioContext.createAnalyser();
+        visualizerAnalyzer.fftSize = 32;
+
         source
           .connect(new DelayNode(audioContext, {
             "delayTime": APPROACH_SECONDS
           }))
+          .connect(visualizerAnalyzer)
           .connect(audioContext.destination);
+
+        new Visualizer(<HTMLCanvasElement>document.getElementById("visualizer"), 
+          visualizerAnalyzer);
 
         source.start();
         audioBeginTime = audioContext.currentTime;

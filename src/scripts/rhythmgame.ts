@@ -31,7 +31,7 @@ export default class RhythmGame {
             let time = <number>note.time;
             let buttonId = <number>note.buttonId;
             if(currTime > time && currTime < time + APPROACH_SECONDS) {
-                ctx.fillRect(buttonId * 200, 
+                ctx.fillRect(buttonId * 200 + 100, 
                     (currTime - time) / APPROACH_SECONDS * SCANLINE_Y - 25, 50, 50);
             }
         }
