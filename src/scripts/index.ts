@@ -60,7 +60,7 @@ window.onload = function() {
           const avg = average(diffs);
           const std = stdev.calculateStandardDeviation(diffs);
 
-          const sensitivity = Number.parseFloat(
+          const sensitivity = 2-Number.parseFloat(
             (<HTMLInputElement>document.getElementById("sensitivity")).value);
           
           if(diff > avg + std * sensitivity) {

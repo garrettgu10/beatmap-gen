@@ -58,6 +58,15 @@ export default class Visualizer {
 
         const visualizerCtx = this.canvas.getContext('2d');
         visualizerCtx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+        
+        visualizerCtx.fillStyle = 'rgba(200, 200, 200, 50)';
+
+        const barWidth = this.canvas.width / this.analyzer.frequencyBinCount;
+        
+        for(let i = 0; i < this.analyzer.frequencyBinCount; i++) {
+          visualizerCtx.fillRect(i * barWidth, 0, barWidth, 
+            this.canvas.height - dataArray[i] / 256 * this.canvas.height);
+        }
 
         this.balls.forEach((ball, idx) => {
             ball.move(dataArray[idx] / 255 * 3);
@@ -65,15 +74,6 @@ export default class Visualizer {
 
             ball.draw(visualizerCtx);
         });
-        
-        // visualizerCtx.fillStyle = 'rgb(200, 200, 200)';
-
-        // const barWidth = this.canvas.width / this.analyzer.frequencyBinCount;
-        
-        // for(let i = 0; i < this.analyzer.frequencyBinCount; i++) {
-        //   visualizerCtx.fillRect(i * barWidth, 0, barWidth, 
-        //     this.canvas.height - dataArray[i] / 256 * this.canvas.height);
-        // }
 
         requestAnimationFrame(this.draw);
     }
