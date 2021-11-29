@@ -15,10 +15,11 @@ if (process.env.NODE_ENV === 'development') {
 
 window.onload = function() {
   const audioFile = document.getElementById('audio-file') as HTMLInputElement;
-  const visualizer = document.getElementById('visualizer') as HTMLCanvasElement;
   let audioContext = new AudioContext();
   let audioBeginTime = 0;
+  let sliderStreak = 10;
   audioFile.onchange = function() {
+    audioFile.style.display = "none";
     const fileReader = new FileReader();
     const beatMap = new BeatMap((<HTMLInputElement>this).files[0].name);
 
@@ -52,20 +53,43 @@ window.onload = function() {
 
           let diff = 0;
 
+          let sliderShouldBeActive = false;
+          const sliderThreshold = Number.parseInt((document.getElementById('slider_threshold') as HTMLInputElement).value);
+          const sliderStickiness = Number.parseInt((document.getElementById('slider_stickiness') as HTMLInputElement).value);
+          const timestamp = audioContext.currentTime - audioBeginTime;
+
           for(let i = 0; i < frequencyBins; i++) {
             diff += Math.abs(dataArray[i] - previousDataArray[i]);
+
+            if(dataArray[i] > sliderThreshold) {
+              sliderShouldBeActive = true;
+            }
+          }
+
+          if(!beatMap.sliderIsActive() && sliderShouldBeActive) {
+            sliderStreak++;
+            if(sliderStreak >= sliderStickiness) {
+              beatMap.beginSlider(timestamp);
+              sliderStreak = 0;
+            }
+          }
+          if(beatMap.sliderIsActive() && !sliderShouldBeActive) {
+            sliderStreak++;
+            if(sliderStreak >= sliderStickiness) {
+              beatMap.endSlider();
+              sliderStreak = 0;
+            }
           }
 
           diffs.push(diff);
           const avg = average(diffs);
           const std = stdev.calculateStandardDeviation(diffs);
 
-          const sensitivity = Number.parseFloat(
+          const sensitivity = 2-Number.parseFloat(
             (<HTMLInputElement>document.getElementById("sensitivity")).value);
           
           if(diff > avg + std * sensitivity) {
             if(!currentlyOnBeat) {
-              const timestamp = audioContext.currentTime - audioBeginTime;
               beatMap.addBeat(timestamp);
             }
             currentlyOnBeat = true;

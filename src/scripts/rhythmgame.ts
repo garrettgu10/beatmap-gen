@@ -4,6 +4,7 @@ export const APPROACH_SECONDS = 0.75;
 const SCANLINE_Y = 500;
 
 const NOTE_LENIENCY = 0.1;
+const SLIDER_LENIENCY = 0.03;
 
 class Scorer {
     currScore: number = 0;
@@ -18,17 +19,19 @@ class FadeOutNote {
     startTime: number;
     endTime: number;
     noteIdx: number;
+    color: string;
 
-    constructor(startTime: number, endTime: number, noteIdx: number) {
+    constructor(startTime: number, endTime: number, noteIdx: number, color: string = "255, 0, 0") {
         this.startTime = startTime;
         this.endTime = endTime;
         this.noteIdx = noteIdx;
+        this.color = color;
     }
 
     draw(currTime: number, ctx: CanvasRenderingContext2D) {
         const opacity = 1 - (currTime - this.startTime) / (this.endTime - this.startTime);
 
-        ctx.fillStyle = `rgba(255, 0, 0, ${opacity})`;
+        ctx.fillStyle = `rgba(${this.color}, ${opacity})`;
 
         const width = 50 + (1 - opacity) * 50;
 
@@ -43,6 +46,7 @@ export default class RhythmGame {
     audioCtx: AudioContext;
     fadeOutNotes: Array<FadeOutNote> = [];
     scorer: Scorer = new Scorer();
+    heldKeys: Set<Number> = new Set<Number>();
 
     constructor(canvas: HTMLCanvasElement, beatmap: BeatMap, startTime: Number, 
         audioCtx: AudioContext) {
@@ -52,8 +56,24 @@ export default class RhythmGame {
         this.audioCtx = audioCtx;
 
         document.addEventListener('keydown', this.handleKeyDown);
+        document.addEventListener('keyup', this.handleKeyUp);
+
+        requestAnimationFrame(this.handleSliders);
 
         requestAnimationFrame(this.draw);
+    }
+
+    handleSliders = () => {
+        let currTime = this.audioCtx.currentTime - <number>this.startTime;
+
+        for(let note of this.beatmap.sliders) {
+            if(Math.abs(currTime - <number>note.time - APPROACH_SECONDS) < SLIDER_LENIENCY && this.heldKeys.has(note.buttonId)) {
+                this.scorer.increaseScore(100);
+                this.fadeOutNotes.push(new FadeOutNote(currTime, currTime + 0.2, note.buttonId, "0, 0, 255"));
+                note.hidden = true;
+            }
+        }
+        requestAnimationFrame(this.handleSliders);
     }
 
     draw = () => {
@@ -66,6 +86,17 @@ export default class RhythmGame {
         ctx.fillRect(0, SCANLINE_Y, this.canvas.width, 1);
         
         for(let note of this.beatmap.notes) {
+            if(note.hidden) continue;
+            let time = <number>note.time;
+            let buttonId = <number>note.buttonId;
+            if(currTime > time && currTime < time + APPROACH_SECONDS + 1) {
+                ctx.fillRect(buttonId * 200 + 100, 
+                    (currTime - time) / APPROACH_SECONDS * SCANLINE_Y - 25, 50, 50);
+            }
+        }
+
+        ctx.fillStyle = 'rgb(0, 0, 255)';
+        for(let note of this.beatmap.sliders) {
             if(note.hidden) continue;
             let time = <number>note.time;
             let buttonId = <number>note.buttonId;
@@ -99,9 +130,10 @@ export default class RhythmGame {
     }
 
     handleKeyDown = (e: KeyboardEvent) => {
-        console.log(e.key);
         const noteIdx = this.getNoteIdx(e.key);
         if(noteIdx === -1) return;
+
+        this.heldKeys.add(noteIdx);
 
         const currTime = this.audioCtx.currentTime - <number>this.startTime;
         const notes = this.beatmap.notes;
@@ -118,4 +150,11 @@ export default class RhythmGame {
         // no hit
         this.scorer.increaseScore(-100);
     }
+
+    handleKeyUp = (e: KeyboardEvent) => {
+        const noteIdx = this.getNoteIdx(e.key);
+        if(noteIdx === -1) return;
+        this.heldKeys.delete(noteIdx);
+    }
+
 }
