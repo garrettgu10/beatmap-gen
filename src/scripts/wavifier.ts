@@ -16,7 +16,7 @@ export default class Wavifier {
 
         this.src.parentNode.insertBefore(this.glcanvas, this.src);
         this.src.style.display = "none";
-        this.glcanvas.className = this.src.className;
+        this.glcanvas.className = this.src.className + " transparent";
 
         requestAnimationFrame(this.draw);
     }
@@ -26,7 +26,7 @@ export default class Wavifier {
 
         this.glcanvas.draw(this.texture)
             .swirl(this.src.width / 2, this.src.height / 2, 
-                this.src.width, Math.sin(performance.now() / 400))
+                this.src.width, 2 * Math.sin(performance.now() / 400))
             .update();
 
         requestAnimationFrame(this.draw);

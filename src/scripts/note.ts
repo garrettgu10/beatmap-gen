@@ -1,6 +1,7 @@
 export default class Note {
     time: Number;
     buttonId: Number;
+    hidden: boolean = false;
     
     constructor(time: Number, buttonId: Number) {
         this.time = time;
