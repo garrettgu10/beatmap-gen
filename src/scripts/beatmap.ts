@@ -6,14 +6,47 @@ const TEMP_DATA = "\nMode: 3\n\n[Editor]\n\n[Metadata]\nTitle:Song\nTitleUnicode
 
 export default class BeatMap {
     notes: Array<Note>;
+    sliders: Array<Note>;
     filename: string;
+
+    activeSlider: number = -1;
+    sliderStartTime: number;
+    sliderSongStartTime: number;
     constructor(filename: string) {
         this.notes = [];
+        this.sliders = [];
         this.filename = filename;
+        setInterval(() => {
+          if(this.activeSlider != -1) {
+            this.sliders.push(new Note(this.sliderSongStartTime + (performance.now() - this.sliderStartTime)/1000, 
+              this.activeSlider));
+              console.log("add new slider");
+          }
+        }, 50);
     }
 
     addBeat(time: number) {
-        this.notes.push(new Note(time, Math.floor(Math.random() * 4)));
+      let buttonId = Math.floor(Math.random() * 4);
+      while(buttonId == this.activeSlider) {
+        buttonId = Math.floor(Math.random() * 4);
+      }
+      this.notes.push(new Note(time, buttonId));
+    }
+
+    beginSlider(time: number) {
+      console.log("Begin");
+      this.sliderSongStartTime = time;
+      this.sliderStartTime = performance.now();
+      this.activeSlider = Math.floor(Math.random() * 4);
+    }
+
+    endSlider() {
+      console.log("End");
+      this.activeSlider = -1;
+    }
+
+    sliderIsActive() : boolean {
+      return this.activeSlider != -1;
     }
 
     downloadUTCTFFile() {

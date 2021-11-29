@@ -6,12 +6,16 @@
   <title>What's updog</title>
 </head>
 <body>
-  <h1>Beatmap Generator</h1>
+  <h1>AutoDDR</h1>
   <input id="audio-file" type="file", accept="audio/*" /><br /><br />
   <label for="sustain">Beat sustain: </label>
   <input type="range" id="sustain" name="sustain" value="100" min="10" max="200">
   <label for="sensitivity">Sensitivity: </label>
-  <input type="range" step="0.01" id="sensitivity" name="sensitivity" value="1" min="0" max="2"><br>
+  <input type="range" step="0.01" id="sensitivity" name="sensitivity" value="1" min="0" max="2">
+  <label for="slider_threshold">Slider threshold: </label>
+  <input type="range" step="1" id="slider_threshold" name="slider_threshold" value="254" min="100" max="255">
+  <label for="slider_stickiness">Slider stickiness: </label>
+  <input type="range" step="1" id="slider_stickiness" name="slider_stickiness" value="30" min="10" max="100"><br>
   <div>Score: <span id="score">0</span></div>
 
   <div class=stack>
