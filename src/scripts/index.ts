@@ -14,13 +14,13 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 window.onload = function() {
-  const audioFile = document.getElementById('audio-file');
+  const audioFile = document.getElementById('audio-file') as HTMLInputElement;
   const visualizer = document.getElementById('visualizer') as HTMLCanvasElement;
   let audioContext = new AudioContext();
   let audioBeginTime = 0;
   audioFile.onchange = function() {
     const fileReader = new FileReader();
-    const beatMap = new BeatMap();
+    const beatMap = new BeatMap((<HTMLInputElement>this).files[0].name);
 
     fileReader.readAsArrayBuffer((<HTMLInputElement>this).files[0]);
 
