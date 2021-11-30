@@ -1,9 +1,9 @@
 import BeatMap from "./beatmap";
 
-export const APPROACH_SECONDS = 0.75;
+export const APPROACH_SECONDS = 1;
 const SCANLINE_Y = 500;
 
-const NOTE_LENIENCY = 0.1;
+const NOTE_LENIENCY = 0.3;
 const SLIDER_LENIENCY = 0.03;
 
 class Scorer {
@@ -139,10 +139,10 @@ export default class RhythmGame {
         const notes = this.beatmap.notes;
         for(let i = 0; i < notes.length; i++) {
             let note = notes[i];
-            if(note.buttonId === noteIdx && Math.abs(currTime - <number>note.time - APPROACH_SECONDS) < NOTE_LENIENCY) {
+            if(!note.hidden && note.buttonId === noteIdx && Math.abs(currTime - <number>note.time - APPROACH_SECONDS) < NOTE_LENIENCY) {
                 note.hidden = true;
                 this.scorer.increaseScore(100);
-                this.fadeOutNotes.push(new FadeOutNote(currTime, currTime + 0.5, noteIdx));
+                this.fadeOutNotes.push(new FadeOutNote(currTime, currTime + 0.2, noteIdx));
                 return;
             }
         }
