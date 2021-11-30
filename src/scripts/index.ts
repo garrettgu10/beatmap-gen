@@ -15,6 +15,10 @@ if (process.env.NODE_ENV === 'development') {
 
 window.onload = function() {
   const audioFile = document.getElementById('audio-file') as HTMLInputElement;
+  const osuDownloadButton = document.getElementById('osu_download') as HTMLButtonElement;
+  const utctfDownloadButton = document.getElementById('utctf_download') as HTMLButtonElement;
+  osuDownloadButton.style.display = "none";
+  utctfDownloadButton.style.display = "none";
   let audioContext = new AudioContext();
   let audioBeginTime = 0;
   let sliderStreak = 10;
@@ -22,6 +26,13 @@ window.onload = function() {
     audioFile.style.display = "none";
     const fileReader = new FileReader();
     const beatMap = new BeatMap((<HTMLInputElement>this).files[0].name);
+
+    osuDownloadButton.onclick = () => {
+      beatMap.downloadFile();
+    };
+    utctfDownloadButton.onclick = () => {
+      beatMap.downloadUTCTFFile();
+    }
 
     fileReader.readAsArrayBuffer((<HTMLInputElement>this).files[0]);
 
@@ -132,7 +143,9 @@ window.onload = function() {
           beatMap, audioBeginTime, audioContext);
 
         source.addEventListener('ended', function() {
-          beatMap.downloadFile();
+          osuDownloadButton.style.display = "inline";
+          utctfDownloadButton.style.display = "inline";
+          console.log('done');
         });
       });
     };
