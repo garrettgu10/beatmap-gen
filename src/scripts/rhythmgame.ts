@@ -61,6 +61,7 @@ export default class RhythmGame {
         requestAnimationFrame(this.handleSliders);
 
         requestAnimationFrame(this.draw);
+        setInterval(this.cleanUp, 100);
     }
 
     handleSliders = () => {
@@ -68,12 +69,25 @@ export default class RhythmGame {
 
         for(let note of this.beatmap.sliders) {
             if(Math.abs(currTime - <number>note.time - APPROACH_SECONDS) < SLIDER_LENIENCY && this.heldKeys.has(note.buttonId)) {
-                this.scorer.increaseScore(100);
+                this.scorer.increaseScore(10);
                 this.fadeOutNotes.push(new FadeOutNote(currTime, currTime + 0.2, note.buttonId, "0, 0, 255"));
                 note.hidden = true;
             }
         }
         requestAnimationFrame(this.handleSliders);
+
+    }
+
+    cleanUp = () => {
+        this.beatmap.notes = this.beatmap.notes.filter(note => !note.hidden);
+        this.beatmap.sliders = this.beatmap.sliders.filter(slider => !slider.hidden);
+
+        let currTime = this.audioCtx.currentTime - <number>this.startTime;
+
+        this.fadeOutNotes.filter(note => note.endTime < currTime);
+
+        this.beatmap.notes = this.beatmap.notes.filter(note => currTime < note.time + APPROACH_SECONDS + 1);
+        this.beatmap.sliders = this.beatmap.sliders.filter(note => currTime < note.time + APPROACH_SECONDS + 1);
     }
 
     draw = () => {
