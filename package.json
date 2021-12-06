@@ -62,7 +62,7 @@
     "@babel/polyfill": "^7.12.1",
     "average": "^1.0.0",
     "core-js": "^3.16.1",
-    "d3": "^7.0.0",
+    "d3": "^7.2.0",
     "glfx": "^0.0.4",
     "glfx-es6": "^0.0.3",
     "standarddeviation": "0.0.2"
