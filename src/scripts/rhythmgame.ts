@@ -79,14 +79,14 @@ export default class RhythmGame {
     }
 
     cleanUp = () => {
-        this.beatmap.notes = this.beatmap.notes.filter(note => !note.hidden);
+        //this.beatmap.notes = this.beatmap.notes.filter(note => !note.hidden);
         this.beatmap.sliders = this.beatmap.sliders.filter(slider => !slider.hidden);
 
         let currTime = this.audioCtx.currentTime - <number>this.startTime;
 
         this.fadeOutNotes.filter(note => note.endTime < currTime);
 
-        this.beatmap.notes = this.beatmap.notes.filter(note => currTime < note.time + APPROACH_SECONDS + 1);
+        //this.beatmap.notes = this.beatmap.notes.filter(note => currTime < note.time + APPROACH_SECONDS + 1);
         this.beatmap.sliders = this.beatmap.sliders.filter(note => currTime < note.time + APPROACH_SECONDS + 1);
     }
 
